@@ -1,0 +1,218 @@
+met_guess::
+!var     level    crtm_use    desc              orig_name
+  ps        1      -1         surface_pressure     ps
+  z         1      -1         geopotential_height  phis
+  u        40       2         zonal_wind           u
+  v        40       2         meridional_wind      v
+  div      40      -1         zonal_wind           div
+  vor      40      -1         meridional_wind      vor
+  tv       40       2         virtual_temperature  tv
+  q        40       2         specific_humidity    sphu
+  oz       40       2         ozone                ozone
+  cw       40       2         cloud_condensate     cw
+! ql       40      10         cloud_liquid         ql
+! qi       40      10         cloud_ice            qi
+! qr       40      10         rain                 qr
+! qs       40      10         snow                 qs
+! qg       40      10         graupel              qg
+::
+
+state_derivatives::
+!var  level  src
+ ps   1      met_guess
+ u    40     met_guess
+ v    40     met_guess
+ tv   40     met_guess
+ q    40     met_guess
+ oz   40     met_guess
+ cw   40     met_guess
+ prse 41     met_guess
+::
+
+state_tendencies::
+!var  levels  source
+ u    40      met_guess
+ v    40      met_guess
+ tv   40      met_guess
+ q    40      met_guess
+ cw   40      met_guess
+ oz   40      met_guess
+ prse 41      met_guess
+::
+
+state_vector::  
+!var     level  itracer source     funcof
+ u        40      0     met_guess     u
+ v        40      0     met_guess     v
+ tv       40      0     met_guess     tv
+ tsen     40      0     met_guess     tv,q
+ q        40      1     met_guess     q
+ oz       40      1     met_guess     oz
+ cw       40      1     met_guess     cw
+# p3d      41      0     met_guess     p3d
+ prse     41      0     met_guess     p3d
+ ps        1      0     met_guess     p3d
+ sst       1      0     met_guess     sst
+##-----------------------------------------------------------------
+# so4_a01  40      1     chem_guess    so4_a01
+# so4_a02  40      1     chem_guess    so4_a02
+# so4_a03  40      1     chem_guess    so4_a03
+# so4_a04  40      1     chem_guess    so4_a04
+##-----------------------------------------------------------------
+# no3_a01  40      1     chem_guess    no3_a01
+# no3_a02  40      1     chem_guess    no3_a02
+# no3_a03  40      1     chem_guess    no3_a03
+# no3_a04  40      1     chem_guess    no3_a04
+##-----------------------------------------------------------------
+# nh4_a01  40      1     chem_guess    nh4_a01
+# nh4_a02  40      1     chem_guess    nh4_a02
+# nh4_a03  40      1     chem_guess    nh4_a03
+# nh4_a04  40      1     chem_guess    nh4_a04
+##-----------------------------------------------------------------
+# oc_a01   40      1     chem_guess    oc_a01
+# oc_a02   40      1     chem_guess    oc_a02
+# oc_a03   40      1     chem_guess    oc_a03
+# oc_a04   40      1     chem_guess    oc_a04
+##-----------------------------------------------------------------
+# bc_a01   40      1     chem_guess    bc_a01
+# bc_a02   40      1     chem_guess    bc_a02
+# bc_a03   40      1     chem_guess    bc_a03
+# bc_a04   40      1     chem_guess    bc_a04
+##-----------------------------------------------------------------
+# cl_a01   40      1     chem_guess    cl_a01
+# cl_a02   40      1     chem_guess    cl_a02
+# cl_a03   40      1     chem_guess    cl_a03
+# cl_a04   40      1     chem_guess    cl_a04
+##-----------------------------------------------------------------
+# na_a01   40      1     chem_guess    na_a01
+# na_a02   40      1     chem_guess    na_a02
+# na_a03   40      1     chem_guess    na_a03
+# na_a04   40      1     chem_guess    na_a04
+##-----------------------------------------------------------------
+ oin_a01  40      1     chem_guess    oin_a01
+ oin_a02  40      1     chem_guess    oin_a02
+ oin_a03  40      1     chem_guess    oin_a03
+ oin_a04  40      1     chem_guess    oin_a04
+##-----------------------------------------------------------------
+# num_a01  40      1     chem_guess    num_a01
+# num_a02  40      1     chem_guess    num_a02
+# num_a03  40      1     chem_guess    num_a03
+# num_a04  40      1     chem_guess    num_a04
+##-----------------------------------------------------------------
+# water_a01  40      1     chem_guess    water_a01
+# water_a02  40      1     chem_guess    water_a02
+# water_a03  40      1     chem_guess    water_a03
+# water_a04  40      1     chem_guess    water_a04
+::
+
+control_vector::
+!var     level  itracer as/tsfc_sdv  an_amp0   source  funcof
+#!------------- METE --------------------------------------------
+# ps        1      0       1.00       -1.0     state    prse
+# t        40      0       1.00       -1.0     state    tv  
+# q        40      1       1.00       -1.0     state    q 
+#!------------- CHEM --------------------------------------------
+# num_a01  40      1       1.00        -1.0     state    num_a01
+# num_a02  40      1       1.00        -1.0     state    num_a02
+# num_a03  40      1       1.00        -1.0     state    num_a03
+# num_a04  40      1       1.00        -1.0     state    num_a04
+#!-----------------------------------------------------------------
+# so4_a01  40      1       1.00        -1.0     state    so4_a01
+# so4_a02  40      1       1.00        -1.0     state    so4_a02
+# so4_a03  40      1       1.00        -1.0     state    so4_a03
+# so4_a04  40      1       1.00        -1.0     state    so4_a04
+##!-----------------------------------------------------------------
+# no3_a01  40      1       1.00        -1.0     state    no3_a01
+# no3_a02  40      1       1.00        -1.0     state    no3_a02
+# no3_a03  40      1       1.00        -1.0     state    no3_a03
+# no3_a04  40      1       1.00        -1.0     state    no3_a04
+##!-----------------------------------------------------------------
+# nh4_a01  40      1       1.00        -1.0     state    nh4_a01
+# nh4_a02  40      1       1.00        -1.0     state    nh4_a02
+# nh4_a03  40      1       1.00        -1.0     state    nh4_a03
+# nh4_a04  40      1       1.00        -1.0     state    nh4_a04
+##!-----------------------------------------------------------------
+# oc_a01  40      1       1.00        -1.0     state    oc_a01
+# oc_a02  40      1       1.00        -1.0     state    oc_a02
+# oc_a03  40      1       1.00        -1.0     state    oc_a03
+# oc_a04  40      1       1.00        -1.0     state    oc_a04
+##!-----------------------------------------------------------------
+# bc_a01  40      1       1.00        -1.0     state    bc_a01
+# bc_a02  40      1       1.00        -1.0     state    bc_a02
+# bc_a03  40      1       1.00        -1.0     state    bc_a03
+# bc_a04  40      1       1.00        -1.0     state    bc_a04
+##------------- IGNORE LOW CONC -----------------------------------
+# cl_a01  40      1       1.00        -1.0     state    cl_a01
+# cl_a02  40      1       1.00        -1.0     state    cl_a02
+# cl_a03  40      1       1.00        -1.0     state    cl_a03
+# cl_a04  40      1       1.00        -1.0     state    cl_a04
+##!--------------
+# na_a01  40      1       1.00        -1.0     state    na_a01
+# na_a02  40      1       1.00        -1.0     state    na_a02
+# na_a03  40      1       1.00        -1.0     state    na_a03
+# na_a04  40      1       1.00        -1.0     state    na_a04
+##------------- IGNORE LOW CONC -----------------------------------
+ oin_a01  40      1       1.00        -1.0     state    oin_a01
+ oin_a02  40      1       1.00        -1.0     state    oin_a02
+ oin_a03  40      1       1.00        -1.0     state    oin_a03
+ oin_a04  40      1       1.00        -1.0     state    oin_a04
+::
+
+chem_guess::
+!var     level  itracer crtm_use   type    orig_name
+ so4_a01  40      1       14       so4_a01  so4_a01
+ so4_a02  40      1       14       so4_a02  so4_a02
+ so4_a03  40      1       14       so4_a03  so4_a03
+ so4_a04  40      1       14       so4_a04  so4_a04
+#-----------------------------------------------------------------
+ no3_a01  40      1       14       no3_a01  no3_a01
+ no3_a02  40      1       14       no3_a02  no3_a02
+ no3_a03  40      1       14       no3_a03  no3_a03
+ no3_a04  40      1       14       no3_a04  no3_a04
+#-----------------------------------------------------------------
+ nh4_a01  40      1       14       nh4_a01  nh4_a01
+ nh4_a02  40      1       14       nh4_a02  nh4_a02
+ nh4_a03  40      1       14       nh4_a03  nh4_a03
+ nh4_a04  40      1       14       nh4_a04  nh4_a04
+#-----------------------------------------------------------------
+ oc_a01   40      1       14       oc_a01  oc_a01
+ oc_a02   40      1       14       oc_a02  oc_a02
+ oc_a03   40      1       14       oc_a03  oc_a03
+ oc_a04   40      1       14       oc_a04  oc_a04
+#-----------------------------------------------------------------
+ bc_a01   40      1       14       bc_a01  bc_a01
+ bc_a02   40      1       14       bc_a02  bc_a02
+ bc_a03   40      1       14       bc_a03  bc_a03
+ bc_a04   40      1       14       bc_a04  bc_a04
+#------------- IGNORE LOW CONC -----------------------------------
+ cl_a01   40      1       14       cl_a01  cl_a01
+ cl_a02   40      1       14       cl_a02  cl_a02
+ cl_a03   40      1       14       cl_a03  cl_a03
+ cl_a04   40      1       14       cl_a04  cl_a04
+#--------------
+ na_a01   40      1       14       na_a01  na_a01
+ na_a02   40      1       14       na_a02  na_a02
+ na_a03   40      1       14       na_a03  na_a03
+ na_a04   40      1       14       na_a04  na_a04
+#------------- IGNORE LOW CONC -----------------------------------
+ oin_a01  40      1       12       oin_a01  oin_a01
+ oin_a02  40      1       12       oin_a02  oin_a02
+ oin_a03  40      1       12       oin_a03  oin_a03
+ oin_a04  40      1       12       oin_a04  oin_a04
+#-----------------------------------------------------------------
+! crtm_use==12 for jac, 10<=crtm_use<20
+ num_a01  40      1       14       num_a01  num_a01
+ num_a02  40      1       14       num_a02  num_a02
+ num_a03  40      1       14       num_a03  num_a03
+ num_a04  40      1       14       num_a04  num_a04
+#-----------------------------------------------------------------
+ water_a01  40      1       14       water_a01  water_a01
+ water_a02  40      1       14       water_a02  water_a02
+ water_a03  40      1       14       water_a03  water_a03
+ water_a04  40      1       14       water_a04  water_a04
+#-----------------------------------------------------------------
+ mas_a01  40      1       14       mas_a01  mas_a01
+ mas_a02  40      1       14       mas_a02  mas_a02
+ mas_a03  40      1       14       mas_a03  mas_a03
+ mas_a04  40      1       14       mas_a04  mas_a04
+::
