@@ -82,11 +82,8 @@ This work is supported by the National Key Research and Development Program of C
 
 ## Feedback
 Dr. Wenyuan Chang
-
 changwy@mail.iap.ac.cn
 
 State Key Laboratory of Atmospheric Boundary Layer Physics and Atmospheric Chemistry (LAPC)
-
 Institute of Atmospheric Physics, Chinese Academy of Sciences
-
 Beijing 100029, China.
