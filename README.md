@@ -4,7 +4,7 @@ A revised 3D-Var GSI DA code for the WRF-Chem MOSAIC aerosols
 ## 1. Description
 This GSI code is revised based on the official GSI v3.7. It is built and run in the same way as the official version. The user is recommended to read the official user's guide first and  know how to run the official GSI version, create the observational bufr file, and make the background error file with GEN_BE.
 
-This revised GSI version works for the WRF-Chem MOSAIC aerosols with four or eight size bins. It can assimilate the 550nm MODIS AOD, CE318 AOD at four wavelengths (440, 675, 870, 1020 nm), aerosol scattering coefficient at three wavelengths (450, 525, 635 nm) of nephelometer, aerosol absorption coefficient of aethalometer at three wavelengths (470, 520, 660 nm), and the surface concentrations of PM2.5 and PM10. For briefly, this page use [GSI] to denote the main directory of comGSIv3.7_EnKFv1.3_cwy1.1_20201123
+This revised GSI version works for the WRF-Chem MOSAIC aerosols with four or eight size bins. It can assimilate the 550nm MODIS AOD, CE318 AOD at four wavelengths (440, 675, 870, 1020 nm), aerosol scattering coefficients at three wavelengths (450, 525, 635 nm) of nephelometer, aerosol absorption coefficients at three wavelengths (470, 520, 660 nm) of aethalometer, and the surface concentrations of PM2.5 and PM10. For briefly, this page use [GSI] to denote the main directory of comGSIv3.7_EnKFv1.3_cwy1.1_20201123
 
 User can check the revised codes by
 ```
