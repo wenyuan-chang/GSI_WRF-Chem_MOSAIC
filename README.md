@@ -8,7 +8,7 @@ This revised GSI version works for the WRF-Chem MOSAIC aerosols with four or eig
 
 User can check the revised codes by
 ```
-cd [GSI]
+cd [GSI]/src
 grep 'cwy mosaic' *.f90
 ```
 
