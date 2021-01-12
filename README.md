@@ -33,7 +33,7 @@ vi comgsi_run_chem.ksh
 # Make sure that the case-specified absolute directory paths are correct.
 # For example, JOB_DIR, OBS_ROOT, BK_ROOT, GSI_ROOT, CRTM_ROOT ...
 
-vi comgsi_run_chem.ksh
+vi comgsi_namelist_chem.sh
 # Edit this file. 
 # In the section of OBS_INPUT::, only keep the observational bufr files which would be assimilated.
 
