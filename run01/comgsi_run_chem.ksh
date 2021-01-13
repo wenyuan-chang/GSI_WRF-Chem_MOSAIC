@@ -62,7 +62,6 @@ set -x
   PREPBUFR4=${OBS_ROOT}/ce318bufr
   PREPBUFR5=${OBS_ROOT}/srfeabsbufr
   PREPBUFR6=${OBS_ROOT}/srfescabufr
-  PREPBUFR7=${OBS_ROOT}/srfeextbufr
 
   BK_FILE=${BK_ROOT}/wrfout.4bin.kashi/RESULT_KASHI_NODA_2010EMIS/wrfout_d02_2019-04-18_18:00:00
 ### -------------------------------------- cwy step 1
@@ -238,7 +237,6 @@ fi
  ln -s ${PREPBUFR4} ./ce318bufr
  ln -s ${PREPBUFR5} ./srfeabsbufr
  ln -s ${PREPBUFR6} ./srfescabufr
- ln -s ${PREPBUFR6} ./srfeextbufr
 #
 ##################################################################################
 
