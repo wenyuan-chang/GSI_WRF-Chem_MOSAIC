@@ -170,14 +170,14 @@ control_vector::
 # num_a07  40      1       1.00        -1.0     state    num_a07
 # num_a08  40      1       1.00        -1.0     state    num_a08
 #!-----------------------------------------------------------------
- mas_a01  40      1       10.0        -1.0     state    mas_a01
- mas_a02  40      1       10.0        -1.0     state    mas_a02
- mas_a03  40      1       10.0        -1.0     state    mas_a03
- mas_a04  40      1       10.0        -1.0     state    mas_a04
- mas_a05  40      1       10.0        -1.0     state    mas_a05
- mas_a06  40      1       10.0        -1.0     state    mas_a06
- mas_a07  40      1       10.0        -1.0     state    mas_a07
- mas_a08  40      1       10.0        -1.0     state    mas_a08
+ mas_a01  40      1       1.0        -1.0     state    mas_a01
+ mas_a02  40      1       1.0        -1.0     state    mas_a02
+ mas_a03  40      1       1.0        -1.0     state    mas_a03
+ mas_a04  40      1       1.0        -1.0     state    mas_a04
+ mas_a05  40      1       1.0        -1.0     state    mas_a05
+ mas_a06  40      1       1.0        -1.0     state    mas_a06
+ mas_a07  40      1       1.0        -1.0     state    mas_a07
+ mas_a08  40      1       1.0        -1.0     state    mas_a08
 ::
 
 chem_guess::
