@@ -19,6 +19,7 @@ cd [GSI]
 mkdir build
 cd build
 csh
+cmake ../
 make -j2
 ```
 
