@@ -176,13 +176,13 @@ if( typename=='srf_eabs' ) then
   wavmidsw   =(/ 0.470e-4, 0.520e-4, 0.660e-4 /) ! cm
   
   refrsw_so4 =(/ 1.540   , 1.535   , 1.525    /)
-  refisw_so4 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_so4 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_no3 =(/ 1.540   , 1.535   , 1.525    /)
-  refisw_no3 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_no3 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_nh4 =(/ 1.540   , 1.535   , 1.525    /)
-  refisw_nh4 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_nh4 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_ocx =(/ 1.550   , 1.550   , 1.550    /)
   refisw_ocx =(/ 0.001   , 0.001   , 0.001    /)
@@ -191,36 +191,29 @@ if( typename=='srf_eabs' ) then
   refisw_bcx =(/ 0.790   , 0.790   , 0.790    /)
   
   refrsw_clx =(/ 1.560   , 1.550   , 1.540    /)
-  refisw_clx =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_clx =(/ 0.      , 0.      , 0.       /)
   
   refrsw_nax =(/ 1.560   , 1.550   , 1.540    /)
-  refisw_nax =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_nax =(/ 0.      , 0.      , 0.       /)
   
   refrsw_oin =(/ 1.530   , 1.530   , 1.530    /) ! dust
   refisw_oin =(/ 0.003   , 0.0025  , 0.0015   /) ! dust
-!----- debug
-!  refisw_oin =(/ 1.0e-7   , 1.0e-7  , 1.0e-7   /) ! dust
-!  refisw_oin =(/ 0.001   , 0.001  , 0.001   /) ! dust
-!  refisw_oin =(/ 0.008   , 0.008  , 0.008   /) ! dust
-!  refisw_oin =(/ 0.01   , 0.01  , 0.01   /) ! dust
-!  refisw_oin =(/ 0.02   , 0.02  , 0.02   /) ! dust
-!----- debug
   
   refrsw_h2o =(/ 1.337   , 1.337   , 1.335    /)
-  refisw_h2o =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_h2o =(/ 0.      , 0.      , 0.       /)
 end if
 if( typename=='srf_esca' ) then
   ! srf_esca     450nm   , 525nm   , 635nm
   wavmidsw   =(/ 0.450e-4, 0.525e-4, 0.635e-4 /) ! cm
   
   refrsw_so4 =(/ 1.540   , 1.530   , 1.530    /)
-  refisw_so4 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_so4 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_no3 =(/ 1.540   , 1.530   , 1.530    /)
-  refisw_no3 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_no3 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_nh4 =(/ 1.540   , 1.530   , 1.530    /)
-  refisw_nh4 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_nh4 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_ocx =(/ 1.550   , 1.550   , 1.550    /)
   refisw_ocx =(/ 0.001   , 0.001   , 0.001    /)
@@ -229,29 +222,29 @@ if( typename=='srf_esca' ) then
   refisw_bcx =(/ 0.790   , 0.790   , 0.790    /)
   
   refrsw_clx =(/ 1.560   , 1.550   , 1.550    /)
-  refisw_clx =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_clx =(/ 0.      , 0.      , 0.       /)
 
   refrsw_nax =(/ 1.560   , 1.550   , 1.550    /)
-  refisw_nax =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_nax =(/ 0.      , 0.      , 0.       /)
   
   refrsw_oin =(/ 1.530   , 1.530   , 1.530    /)
   refisw_oin =(/ 0.003   , 0.0025  , 0.0015   /)
   
   refrsw_h2o =(/ 1.337   , 1.337   , 1.335    /)
-  refisw_h2o =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_h2o =(/ 0.      , 0.      , 0.       /)
 end if
 if( typename=='srf_eext' ) then
   ! srf_eext     880nm   , 880nm   , 880nm
   wavmidsw   =(/ 0.880e-4, 0.880e-4, 0.880e-4 /) ! cm
   
   refrsw_so4 =(/ 1.520   , 1.520   , 1.520    /)
-  refisw_so4 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_so4 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_no3 =(/ 1.520   , 1.520   , 1.520    /)
-  refisw_no3 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_no3 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_nh4 =(/ 1.520   , 1.520   , 1.520    /)
-  refisw_nh4 =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_nh4 =(/ 0.      , 0.      , 0.       /)
   
   refrsw_ocx =(/ 1.550   , 1.550   , 1.550    /)
   refisw_ocx =(/ 0.001   , 0.001   , 0.001    /)
@@ -260,16 +253,16 @@ if( typename=='srf_eext' ) then
   refisw_bcx =(/ 0.790   , 0.790   , 0.790    /)
   
   refrsw_clx =(/ 1.530   , 1.530   , 1.530    /)
-  refisw_clx =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_clx =(/ 0.      , 0.      , 0.       /)
 
   refrsw_nax =(/ 1.530   , 1.530   , 1.530    /)
-  refisw_nax =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_nax =(/ 0.      , 0.      , 0.       /)
   
   refrsw_oin =(/ 1.530   , 1.530   , 1.530    /)
   refisw_oin =(/ 0.001   , 0.001   , 0.001    /)
   
   refrsw_h2o =(/ 1.330   , 1.330   , 1.330    /)
-  refisw_h2o =(/ 1.0e-7  , 1.0e-7  , 1.0e-7   /)
+  refisw_h2o =(/ 0.      , 0.      , 0.       /)
 end if
 
 ! g/cm3
