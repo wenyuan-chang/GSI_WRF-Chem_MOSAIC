@@ -677,19 +677,34 @@ subroutine update_guess(sval,sbias)
         write(c2,'(i2.2)') ksz
         ! rso4, rno3, rclx: ug/kg -> nmol/m3
         ! rocx, rbcx, roin: ug/kg ->   ng/m3
-        call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'so4_a'//c2,ptr3dges,istatus)
-        so4_a0x=ptr3dges
-        call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'no3_a'//c2,ptr3dges,istatus)
-        no3_a0x=ptr3dges
-        call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'cl_a'//c2,ptr3dges,istatus)
-        clx_a0x=ptr3dges
 
-        call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'oc_a'//c2,ptr3dges,istatus)
-        ocx_a0x=ptr3dges
-        call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'bc_a'//c2,ptr3dges,istatus)
-        bcx_a0x=ptr3dges
-        call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'oin_a'//c2,ptr3dges,istatus)
-        oin_a0x=ptr3dges
+        if( .False. ) then
+          call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'so4_a'//c2,ptr3dges,istatus)
+          so4_a0x=ptr3dges
+          call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'no3_a'//c2,ptr3dges,istatus)
+          no3_a0x=ptr3dges
+          call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'cl_a'//c2,ptr3dges,istatus)
+          clx_a0x=ptr3dges
+          call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'oc_a'//c2,ptr3dges,istatus)
+          ocx_a0x=ptr3dges
+          call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'bc_a'//c2,ptr3dges,istatus)
+          bcx_a0x=ptr3dges
+          call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'oin_a'//c2,ptr3dges,istatus)
+          oin_a0x=ptr3dges
+        else
+          call gsi_bundlegetpointer (sval(ii),'so4_a'//c2,ptr3dinc,istatus)
+          so4_a0x=ptr3dinc
+          call gsi_bundlegetpointer (sval(ii),'no3_a'//c2,ptr3dinc,istatus)
+          no3_a0x=ptr3dinc
+          call gsi_bundlegetpointer (sval(ii),'cl_a'//c2,ptr3dinc,istatus)
+          clx_a0x=ptr3dinc
+          call gsi_bundlegetpointer (sval(ii),'oc_a'//c2,ptr3dinc,istatus)
+          ocx_a0x=ptr3dinc
+          call gsi_bundlegetpointer (sval(ii),'bc_a'//c2,ptr3dinc,istatus)
+          bcx_a0x=ptr3dinc
+          call gsi_bundlegetpointer (sval(ii),'oin_a'//c2,ptr3dinc,istatus)
+          oin_a0x=ptr3dinc
+        end if
 
         call gsi_bundlegetpointer (gsi_metguess_bundle(it),'q' ,ges_q ,istatus)
         call gsi_bundlegetpointer (gsi_metguess_bundle(it),'tv',ges_tv,istatus)
@@ -730,7 +745,12 @@ subroutine update_guess(sval,sbias)
         end do
         end do
         call gsi_bundlegetpointer (gsi_chemguess_bundle(it),'water_a'//c2,ptr3dges,istatus)
-        ptr3dges=h2o_a0x
+        if( .False. ) then
+          ptr3dges=h2o_a0x
+        else
+          ptr3dinc=h2o_a0x
+          call upd_positive_fldr3_(ptr3dges,ptr3dinc,tgmin)
+        end if
       end do
       !!! --------------------------- awa ---------------------------------
     end if
