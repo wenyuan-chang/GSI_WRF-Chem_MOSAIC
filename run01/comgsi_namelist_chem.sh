@@ -55,10 +55,10 @@ cat <<EOF > gsiparm.anl
 OBS_INPUT::
 !  dfile          dtype       dplat     dsis                 dval    dthin dsfcalc
 !!! cwy ---------------------------------------- cwy step 4
-!   modisbufr      modis_aod   terra     v.modis_terra        1.0     2     0
+!   modisbufr      aodx_modis   terra     v.modis_terra        1.0     2     0
    pm25bufr       pm2_5       null      TEOM                 1.0     0     0
    pm10bufr       pm10        null      TEOM                 1.0     0     0
-!   ce318bufr      ce318_aod   null      v.ce318              1.0     0     0
+!   ce318bufr      aodx_ce318   null      v.ce318              1.0     0     0
 !   srfeabsbufr    srf_eabs    null      v.srf_eabs           1.0     0     0
 !   srfescabufr    srf_esca    null      v.srf_esca           1.0     0     0
 !!! cwy ---------------------------------------- cwy step 4
