@@ -189,15 +189,15 @@ subroutine setuprhsall(ndata,mype,init_pass,last_pass)
   external:: mpi_finalize
   external:: mpi_reduce
   !external:: read_obsdiags
-  external:: setupaod
-!!! cwy ce318 -------------------------------
-  external:: setupaod_ce318
-!!! cwy ce318 -------------------------------
-!!! cwy srf_eabs_esca -----------------------
+!!! cwy mosaic --------------------------------------
+  external:: setupaod_aodx_modis
+  external:: setupaod_aodx_ce318
+  external:: setupaod_aaod_ce318
+
   external:: setupaod_srfeabs
   external:: setupaod_srfesca
   external:: setupaod_srfeext
-!!! cwy srf_eabs_esca -----------------------
+!!! cwy mosaic --------------------------------------
   external:: setupbend
   external:: setupdw
   external:: setuplag
@@ -519,16 +519,23 @@ subroutine setuprhsall(ndata,mype,init_pass,last_pass)
                  mype,aivals,stats,nchanl,nreal,nobs,&
                  obstype,isis,is,rad_diagsave,init_pass,last_pass)
 
-!          Set up for aerosol data
-           else if(ditype(is) == 'aero')then
-              call setupaod(lunin,&
+!!! cwy mosaic ------------------------------------------------------
+!!! cwy ce318 ---------------------------------------------
+!          Set up for modis aodx data
+           else if(ditype(is) == 'aodx_modis')then
+              call setupaod_aodx_modis(lunin,&
                  mype,nchanl,nreal,nobs,&
                  obstype,isis,is,aero_diagsave,init_pass)
 
-!!! cwy ce318 ---------------------------------------------
-!          Set up for ce318 aerosol data
-           else if(ditype(is) == 'ce318_aod')then
-              call setupaod_ce318(lunin,&
+!          Set up for ce318 aodx data
+           else if(ditype(is) == 'aodx_ce318')then
+              call setupaod_aodx_ce318(lunin,&
+                 mype,nchanl,nreal,nobs,&
+                 obstype,isis,is,aero_diagsave,init_pass)
+
+!          Set up for ce318 aaod data
+           else if(ditype(is) == 'aaod_ce318')then
+              call setupaod_aaod_ce318(lunin,&
                  mype,nchanl,nreal,nobs,&
                  obstype,isis,is,aero_diagsave,init_pass)
 !!! cwy ce318 ---------------------------------------------
@@ -550,6 +557,7 @@ subroutine setuprhsall(ndata,mype,init_pass,last_pass)
                  mype,nchanl,nreal,nobs,&
                  obstype,isis,is,aero_diagsave,init_pass)
 !!! cwy srf_eabs_esca -------------------------------------
+!!! cwy mosaic ------------------------------------------------------
 
 !          Set up for precipitation data
            else if(ditype(is) == 'pcp')then

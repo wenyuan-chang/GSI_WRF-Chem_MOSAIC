@@ -197,13 +197,14 @@ subroutine intjo_(yobs,rval,qpred,sval,sbias,ibin)
 use kinds, only: r_kind,i_kind,r_quad
 use jfunc, only: nrclen,nsclen,npclen,ntclen
 use bias_predictors, only: predictors
-use intaodmod, only: intaod
-!!! cwy srf_eabs_esca ------------------------------
+!!! cwy mosaic, srf_eabs_esca ------------------------------
+use intaodmod_aodx   , only: intaod_aodx
+use intaodmod_aaod   , only: intaod_aaod
 use intaodmod_srfeabs, only: intaod_srfeabs
 use intaodmod_srfesca, only: intaod_srfesca
 use intaodmod_srfeext, only: intaod_srfeext
 use mpimod, only: mype
-!!! cwy srf_eabs_esca ------------------------------
+!!! cwy mosaic, srf_eabs_esca ------------------------------
 use inttmod, only: intt
 use intwmod, only: intw
 use intpsmod, only: intps
@@ -332,10 +333,14 @@ real(r_quad),dimension(max(1,nrclen)), intent(inout) :: qpred
 ! RHS calculation for precipitation
   call intpcp(yobs%pcp,rval,sval)
 
-!!! cwy --------------------------------------------------------------------
-! RHS calculation for AOD
-  if( mype==0 ) write(*,*) 'associated(yobs%aero)=', associated(yobs%aero)
-  call intaod(yobs%aero,rval,sval)
+!!! cwy mosaic --------------------------------------------------------------------
+! RHS calculation for aod
+  if( mype==0 ) write(*,*) 'associated(yobs%aodx)=', associated(yobs%aodx)
+  call intaod_aodx(yobs%aodx,rval,sval)
+
+! RHS calculation for aaod
+  if( mype==0 ) write(*,*) 'associated(yobs%aaod)=', associated(yobs%aaod)
+  call intaod_aaod(yobs%aaod,rval,sval)
 
 !!! cwy srf_eabs_esca -------------------------------------------------
 ! RHS calculation for srf eabs
@@ -350,7 +355,7 @@ real(r_quad),dimension(max(1,nrclen)), intent(inout) :: qpred
   if( mype==0 ) write(*,*) 'associated(yobs%srfeext)=', associated(yobs%srfeext)
   call intaod_srfeext(yobs%srfeext,rval,sval)
 !!! cwy srf_eabs_esca -------------------------------------------------
-!!! cwy --------------------------------------------------------------------
+!!! cwy mosaic --------------------------------------------------------------------
 
 ! RHS for conventional gust observations
   call intgust(yobs%gust,rval,sval)

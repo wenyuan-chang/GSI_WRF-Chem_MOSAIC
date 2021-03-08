@@ -108,7 +108,7 @@ complex, dimension(nswbands)        ::  swref_index_h2o
 complex, dimension(nsig,nsize_mosaic_wrf,nswbands) ::  swrefindx
 real(r_kind),dimension(nsig,nsize_mosaic_wrf,nswbands)      ::  weighte, weights
 
-integer(i_kind)                     ::  knr, kni, itab, jtab
+integer(i_kind)                     ::  knr, kni, itab, jtab, iimx, jjmx
 real(r_kind)                        ::  rmin, rmax, refrmin, refrmax, refimin, refimax
 real(r_kind)                        ::  drefr, drefi, bma, bpa, xr
 real(r_kind)                        ::  xrmin, xrmax, thesum, xlog, xrad
@@ -168,7 +168,7 @@ ilon=3
 
 !----------------------------
 ! 300, 400, 600, 999 nm in WRF-Chem
-! ce318        440nm   , 550nm   , 675nm   , 870nm   , 1020nm
+!              440nm   , 550nm   , 675nm   , 870nm   , 1020nm
 !wavmidsw   =(/ 0.44e-4 , 0.55e-4 , 0.675e-4, 0.87e-4 , 1.02e-4 /) ! cm
 !
 if( typename=='srf_eabs' ) then
@@ -198,6 +198,15 @@ if( typename=='srf_eabs' ) then
   
   refrsw_oin =(/ 1.530   , 1.530   , 1.530    /) ! dust
   refisw_oin =(/ 0.003   , 0.0025  , 0.0015   /) ! dust
+!----- debug
+!  refisw_oin =(/ 0.       , 0.      , 0.       /) ! dust
+!  refisw_oin =(/ 0.001   , 0.001  , 0.001   /) ! dust
+!  refisw_oin =(/ 0.008   , 0.008  , 0.008   /) ! dust
+!  refisw_oin =(/ 0.01   , 0.01  , 0.01   /) ! dust
+!  refisw_oin =(/ 0.02   , 0.02  , 0.02   /) ! dust
+!  refisw_oin =(/ 0.05   , 0.05  , 0.05   /) ! dust
+!  refisw_oin =(/ 0.79   , 0.79  , 0.79   /) ! dust
+!----- debug
   
   refrsw_h2o =(/ 1.337   , 1.337   , 1.335    /)
   refisw_h2o =(/ 0.      , 0.      , 0.       /)
@@ -738,68 +747,79 @@ dokk: do kk=1, 1
       if( kk==1 ) then
         Rup_Rlow=refrtabsw(itab+1,ksw)-refrtabsw(itab,ksw)
         Iup_Ilow=refitabsw(jtab+1,ksw)-refitabsw(jtab,ksw)
+        iimx=min(itab+1,nrefr)
+        jjmx=min(jtab+1,nrefi)
 
         ! for assimilating absorbing eabs
         if( typename=='srf_eabs' ) then
-          a00=0.; a01=0.; a10=0.; a11=0.
-          uu=(refr-refrtabsw(itab,ksw))/Rup_Rlow
-          if( uu>1 ) print *, 'cwy warning uu>1, refr=', refr, refrtabsw(itab,ksw), Rup_Rlow
-          do kch=1, ncoef
-            a00=a00+ch(kch)*(extpsw(kch,itab ,jtab   ,ksw)-scapsw(kch,itab  ,jtab  ,ksw))
-            a01=a01+ch(kch)*(extpsw(kch,itab ,jtab+1 ,ksw)-scapsw(kch,itab  ,jtab+1,ksw))
-            a10=a10+ch(kch)*(extpsw(kch,itab+1,jtab  ,ksw)-scapsw(kch,itab+1,jtab  ,ksw))
-            a11=a11+ch(kch)*(extpsw(kch,itab+1,jtab+1,ksw)-scapsw(kch,itab+1,jtab+1,ksw))
+          a00=0.5*abspsw(1,itab,jtab,ksw)
+          a01=0.5*abspsw(1,itab,jjmx,ksw)
+          a10=0.5*abspsw(1,iimx,jtab,ksw)
+          a11=0.5*abspsw(1,iimx,jjmx,ksw)
+          do knc=2, ncoef
+            a00=a00+ch(knc)*abspsw(knc,itab,jtab,ksw)
+            a01=a01+ch(knc)*abspsw(knc,itab,jjmx,ksw)
+            a10=a10+ch(knc)*abspsw(knc,iimx,jtab,ksw)
+            a11=a11+ch(knc)*abspsw(knc,iimx,jjmx,ksw)
           end do
           a00=a00*pabs; a01=a01*pabs
           a10=a10*pabs; a11=a11*pabs
-          betaI(ksz,ksw)=((uu-1)*a00-uu*a01+(1-uu)*a10+uu*a11)/Iup_Ilow
+
+          uu=(refr-refrtabsw(itab,ksw))/Rup_Rlow
+          betaI(ksz,ksw)=((uu-1)*a00-uu*a10+(1-uu)*a01+uu*a11)/Iup_Ilow
+
+          vv=(refi-refitabsw(jtab,ksw))/Iup_Ilow
+          betaR(ksz,ksw)=((vv-1)*a00+(1-vv)*a10-vv*a01+vv*a11)/Rup_Rlow
+
           eabs_srf(ksz,ksw)=pabs*pie*exp(xlog)**2
         end if
 
         ! for assimilating scattering esca
         if( typename=='srf_esca' ) then
-          a00=0.; a01=0.; a10=0.; a11=0.
-          vv=(refi-refitabsw(jtab,ksw))/Iup_Ilow
-          if( vv>1 ) print *, 'cwy warning vv>1, refi=', refi, refitabsw(jtab,ksw), Iup_Ilow
-          do kch=1, ncoef
-            a00=a00+ch(kch)*scapsw(kch,itab  ,jtab  ,ksw)
-            a01=a01+ch(kch)*scapsw(kch,itab  ,jtab+1,ksw)
-            a10=a10+ch(kch)*scapsw(kch,itab+1,jtab  ,ksw)
-            a11=a11+ch(kch)*scapsw(kch,itab+1,jtab+1,ksw)
+          a00=0.5*scapsw(1,itab,jtab,ksw)
+          a01=0.5*scapsw(1,itab,jjmx,ksw)
+          a10=0.5*scapsw(1,iimx,jtab,ksw)
+          a11=0.5*scapsw(1,iimx,jjmx,ksw)
+          do knc=2, ncoef
+            a00=a00+ch(knc)*scapsw(knc,itab,jtab,ksw)
+            a01=a01+ch(knc)*scapsw(knc,itab,jjmx,ksw)
+            a10=a10+ch(knc)*scapsw(knc,iimx,jtab,ksw)
+            a11=a11+ch(knc)*scapsw(knc,iimx,jjmx,ksw)
           end do
           a00=a00*psca; a01=a01*psca
           a10=a10*psca; a11=a11*psca
-          betaR(ksz,ksw)=((vv-1)*a00+(1-vv)*a01-vv*a10+vv*a11)/Rup_Rlow
+
+          uu=(refr-refrtabsw(itab,ksw))/Rup_Rlow
+          betaI(ksz,ksw)=((uu-1)*a00-uu*a10+(1-uu)*a01+uu*a11)/Iup_Ilow
+
+          vv=(refi-refitabsw(jtab,ksw))/Iup_Ilow
+          betaR(ksz,ksw)=((vv-1)*a00+(1-vv)*a10-vv*a01+vv*a11)/Rup_Rlow
+
           esca_srf(ksz,ksw)=psca*pie*exp(xlog)**2
         end if
 
         ! for assimilating extinction eext
         if( typename=='srf_eext' ) then
-          a00=0.; a01=0.; a10=0.; a11=0.
+          a00=0.5*extpsw(1,itab,jtab,ksw)
+          a01=0.5*extpsw(1,itab,jjmx,ksw)
+          a10=0.5*extpsw(1,iimx,jtab,ksw)
+          a11=0.5*extpsw(1,iimx,jjmx,ksw)
+          do knc=2, ncoef
+            a00=a00+ch(knc)*extpsw(knc,itab,jtab,ksw)
+            a01=a01+ch(knc)*extpsw(knc,itab,jjmx,ksw)
+            a10=a10+ch(knc)*extpsw(knc,iimx,jtab,ksw)
+            a11=a11+ch(knc)*extpsw(knc,iimx,jjmx,ksw)
+          end do
+          a00=a00*pext; a01=a01*pext
+          a10=a10*pext; a11=a11*pext
+
           uu=(refr-refrtabsw(itab,ksw))/Rup_Rlow
-          do kch=1, ncoef
-            a00=a00+ch(kch)*(extpsw(kch,itab ,jtab   ,ksw)-scapsw(kch,itab  ,jtab  ,ksw))
-            a01=a01+ch(kch)*(extpsw(kch,itab ,jtab+1 ,ksw)-scapsw(kch,itab  ,jtab+1,ksw))
-            a10=a10+ch(kch)*(extpsw(kch,itab+1,jtab  ,ksw)-scapsw(kch,itab+1,jtab  ,ksw))
-            a11=a11+ch(kch)*(extpsw(kch,itab+1,jtab+1,ksw)-scapsw(kch,itab+1,jtab+1,ksw))
-          end do
-          a00=a00*pabs; a01=a01*pabs
-          a10=a10*pabs; a11=a11*pabs
-          betaI(ksz,ksw)=((uu-1)*a00-uu*a01+(1-uu)*a10+uu*a11)/Iup_Ilow
+          betaI(ksz,ksw)=((uu-1)*a00-uu*a10+(1-uu)*a01+uu*a11)/Iup_Ilow
 
-          a00=0.; a01=0.; a10=0.; a11=0.
           vv=(refi-refitabsw(jtab,ksw))/Iup_Ilow
-          do kch=1, ncoef
-            a00=a00+ch(kch)*scapsw(kch,itab  ,jtab  ,ksw)
-            a01=a01+ch(kch)*scapsw(kch,itab  ,jtab+1,ksw)
-            a10=a10+ch(kch)*scapsw(kch,itab+1,jtab  ,ksw)
-            a11=a11+ch(kch)*scapsw(kch,itab+1,jtab+1,ksw)
-          end do
-          a00=a00*psca; a01=a01*psca
-          a10=a10*psca; a11=a11*psca
-          betaR(ksz,ksw)=((vv-1)*a00+(1-vv)*a01-vv*a10+vv*a11)/Rup_Rlow
+          betaR(ksz,ksw)=((vv-1)*a00+(1-vv)*a10-vv*a01+vv*a11)/Rup_Rlow
 
-          eext_srf(ksz,ksw)=(psca+pabs)*pie*exp(xlog)**2    !!! cm^2
+          eext_srf(ksz,ksw)=pext*pie*exp(xlog)**2
         end if
       end if
       !!! cwy srf_eabs_esca ---------------------------
@@ -898,10 +918,13 @@ dokch: do kch=1, nswbands !nchanl
           end if
           ! jac for mas_a0x
           if( n_cvmas/=0 .and. index(aerosol_names_jac(kctr),'mas_a')>0 ) then
-            refr=real(swrefindx(kk,ksz,ksw)); refi=-imag(swrefindx(kk,ksz,ksw)); rden=rden_mix(kk,ksz)
-
+            refr=real(swrefindx(kk,ksz,ksw))
+            refi=-imag(swrefindx(kk,ksz,ksw))
+            rden=rden_mix(kk,ksz)
             if( typename=='srf_eabs' .and. srfaod_channel>0 .and. vol_srf_wetaer(ksz)>rmin_value ) then
               jacobian_aero(indx+kk,kch)=3*eabs_srf(ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
+              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_srf_wetaer(ksz))*betaR(ksz,ksw)
               jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
               & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_srf_wetaer(ksz))*betaI(ksz,ksw)
             end if
@@ -909,6 +932,8 @@ dokch: do kch=1, nswbands !nchanl
               jacobian_aero(indx+kk,kch)=3*esca_srf(ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
               jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
               & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_srf_wetaer(ksz))*betaR(ksz,ksw)
+              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_srf_wetaer(ksz))*betaI(ksz,ksw)
             end if
             if( typename=='srf_eext' .and. srfaod_channel>0 .and. vol_srf_wetaer(ksz)>rmin_value ) then
               jacobian_aero(indx+kk,kch)=3*eext_srf(ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
@@ -924,12 +949,16 @@ dokch: do kch=1, nswbands !nchanl
             if( typename=='srf_eabs' .and. srfaod_channel>0 .and. vol_srf_wetaer(ksz)>rmin_value ) then
               jacobian_aero(indx+kk,kch)=3*eabs_srf(ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
               jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_srf_wetaer(ksz))*betaR(ksz,ksw)
+              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
               & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_srf_wetaer(ksz))*betaI(ksz,ksw)
             end if
             if( typename=='srf_esca' .and. srfaod_channel>0 .and. vol_srf_wetaer(ksz)>rmin_value ) then
               jacobian_aero(indx+kk,kch)=3*esca_srf(ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
               jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
               & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_srf_wetaer(ksz))*betaR(ksz,ksw)
+              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_srf_wetaer(ksz))*betaI(ksz,ksw)
             end if
             if( typename=='srf_eext' .and. srfaod_channel>0 .and. vol_srf_wetaer(ksz)>rmin_value ) then
               jacobian_aero(indx+kk,kch)=3*eext_srf(ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)

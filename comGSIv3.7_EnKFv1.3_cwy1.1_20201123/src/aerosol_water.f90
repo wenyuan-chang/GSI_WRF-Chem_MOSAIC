@@ -2,7 +2,7 @@ module aerosol_water_awa
 use kinds, only : r_kind, i_kind
 
 contains
-!!! cwy ----------------------- aerosol water content -------------------
+!!! cwy mosaic ----------------------- aerosol water content -------------------
 real function aerosol_water( rso4, rno3, rclx, rocx, rbcx, roin, rhum )
 real(r_kind), intent( in )          ::  rso4, rno3, rclx, rocx, rbcx, roin, rhum
 integer(i_kind)                     ::  kaer
@@ -80,7 +80,7 @@ do kaer=1, 6
     else
       bin_molality=-b_zsr*log(aw)        ! bin_molality: mol/kg
     end if
-    dum=dum+aermol/bin_molality        ! ug/m3
+    dum=dum+aermol/bin_molality          ! ug/m3
   else
     tmpa=tmpa+aermas/aerden*kappa        ! n(cm3)/m3=ncc/m3
   end if
@@ -89,7 +89,7 @@ dum=dum+1.e-3*tmpa*aw/(1.-aw)            ! ug/m3, tmpa*water_density(=1g/cm3)*1.
 aerosol_water=dum*1.e-9                  ! kg(water)/m^3(air)
 
 end function aerosol_water
-!!! cwy ----------------------- aerosol water content -------------------
+!!! cwy mosaic ----------------------- aerosol water content -------------------
 
 end module aerosol_water_awa
 

@@ -53,7 +53,7 @@ integer(i_kind)                                        ::  ix1, iy1, ix, iy, ixp
 integer(i_kind)                                        ::  j0, kk, itsig, itsigp, ksw, ksz, kaer, kch, kctr
 real(r_kind)                                           ::  w00, w01, w10, w11, ww, dsw1, dsw0
 real(r_kind)                                           ::  dx, dy, delx, dely, delx1, dely1
-real(r_kind)                                           ::  dtsig, dtsigp, totaod_channel, binaod_channel
+real(r_kind)                                           ::  dtsig, dtsigp, totaod_channel
 real(r_kind),dimension(nsig)                           ::  prsl, temp, shum, den_air
 real(r_kind),dimension(nsig+1)                         ::  hegt
 
@@ -110,7 +110,7 @@ complex, dimension(nswbands)        ::  swref_index_h2o
 complex, dimension(nsig,nsize_mosaic_wrf,nswbands) ::  swrefindx_wet, swrefindx_dry
 real(r_kind),dimension(nsig,nsize_mosaic_wrf,nswbands)      ::  weighte, weights
 
-integer(i_kind)                     ::  knr, kni, itab, jtab
+integer(i_kind)                     ::  knr, kni, itab, jtab, iimx, jjmx
 real(r_kind)                        ::  rmin, rmax, refrmin, refrmax, refimin, refimax
 real(r_kind)                        ::  drefr, drefi, bma, bpa, xr
 real(r_kind)                        ::  xrmin, xrmax, thesum, xlog, xrad
@@ -121,7 +121,7 @@ real*8, dimension(nsiz)             ::  qext, qsca, gqsc
 real, dimension(nsiz)               ::  qext4, qsca4, qabs4, asymm
 real, dimension(nsiz)               ::  rs
 real, dimension(ncoef)              ::  cext, csca, casm, ch
-real, dimension(nsig,nswbands)      ::  swtauaer, swextaer, swssaaer, swgymaer
+real, dimension(nsig,nswbands)      ::  swaodx, swaaod, swextz, swssaz, swgymz
 
 real(r_kind),dimension(nsig,n_actual_aerosols)  ::  aero
 
@@ -140,7 +140,7 @@ logical, dimension(2)               ::  prnt=(/.false.,.false./)
 real(r_kind),dimension(nsig,nsize_mosaic_wrf)      ::  rad_dry
 real(r_kind),dimension(nsig,nsize_mosaic_wrf)      ::  vol_lay_dryaer, vol_lay_wetaer
 real, dimension(nsig,nsize_mosaic_wrf,nswbands)    ::  betaR, betaI
-real, dimension(nsig,nsize_mosaic_wrf,nswbands)    ::  eext_lay
+real, dimension(nsig,nsize_mosaic_wrf,nswbands)    ::  eext_lay, eabs_lay
 
 real(r_kind)                        ::  pabs, dp_dry
 real                                ::  Iup_Ilow, Rup_Rlow, uu, vv
@@ -608,9 +608,10 @@ do kk=1, nsig
 end do
 
 !----------------------------
-swtauaer=0.
-swssaaer=0.
-swgymaer=0.
+swaodx=0.
+swaaod=0.
+swssaz=0.
+swgymz=0.
 
 xrmin=log(rmin)
 xrmax=log(rmax)
@@ -666,36 +667,30 @@ dokk: do kk=1, nsig
       !!! cwy mosaic ------------------------------------------------------------
       Rup_Rlow=refrtabsw(itab+1,ksw)-refrtabsw(itab,ksw)
       Iup_Ilow=refitabsw(jtab+1,ksw)-refitabsw(jtab,ksw)
+      iimx=min(itab+1,nrefr)
+      jjmx=min(jtab+1,nrefi)
 
-      ! for assimilating absorbing aod
-      a00=0.; a01=0.; a10=0.; a11=0.
+      a00=0.5*extpsw(1,itab,jtab,ksw)
+      a01=0.5*extpsw(1,itab,jjmx,ksw)
+      a10=0.5*extpsw(1,iimx,jtab,ksw)
+      a11=0.5*extpsw(1,iimx,jjmx,ksw)
+      do kch=2, ncoef
+        a00=a00+ch(kch)*extpsw(knc,itab,jtab,ksw)
+        a01=a01+ch(kch)*extpsw(knc,itab,jjmx,ksw)
+        a10=a10+ch(kch)*extpsw(knc,iimx,jtab,ksw)
+        a11=a11+ch(kch)*extpsw(knc,iimx,jjmx,ksw)
+      end do
+      a00=a00*pext; a01=a01*pext
+      a10=a10*pext; a11=a11*pext
+
       uu=(refr-refrtabsw(itab,ksw))/Rup_Rlow
-      if( uu>1 ) print *, 'cwy warning uu>1, refr=', refr, refrtabsw(itab,ksw), Rup_Rlow
-      do kch=1, ncoef
-        a00=a00+ch(kch)*(extpsw(kch,itab  ,jtab  ,ksw)-scapsw(kch,itab  ,jtab  ,ksw))
-        a01=a01+ch(kch)*(extpsw(kch,itab  ,jtab+1,ksw)-scapsw(kch,itab  ,jtab+1,ksw))
-        a10=a10+ch(kch)*(extpsw(kch,itab+1,jtab  ,ksw)-scapsw(kch,itab+1,jtab  ,ksw))
-        a11=a11+ch(kch)*(extpsw(kch,itab+1,jtab+1,ksw)-scapsw(kch,itab+1,jtab+1,ksw))
-      end do
-      a00=a00*pabs; a01=a01*pabs
-      a10=a10*pabs; a11=a11*pabs
-      betaI(kk,ksz,ksw)=((uu-1)*a00-uu*a01+(1-uu)*a10+uu*a11)/Iup_Ilow
+      betaI(kk,ksz,ksw)=((uu-1)*a00-uu*a10+(1-uu)*a01+uu*a11)/Iup_Ilow
 
-      ! for assimilating scattering aod
-      a00=0.; a01=0.; a10=0.; a11=0.
       vv=(refi-refitabsw(jtab,ksw))/Iup_Ilow
-      if( vv>1 ) print *, 'cwy warning vv>1, refi=', refi, refitabsw(jtab,ksw), Iup_Ilow
-      do kch=1, ncoef
-        a00=a00+ch(kch)*scapsw(kch,itab  ,jtab  ,ksw)
-        a01=a01+ch(kch)*scapsw(kch,itab  ,jtab+1,ksw)
-        a10=a10+ch(kch)*scapsw(kch,itab+1,jtab  ,ksw)
-        a11=a11+ch(kch)*scapsw(kch,itab+1,jtab+1,ksw)
-      end do
-      a00=a00*psca; a01=a01*psca
-      a10=a10*psca; a11=a11*psca
-      betaR(kk,ksz,ksw)=((vv-1)*a00+(1-vv)*a01-vv*a10+vv*a11)/Rup_Rlow
+      betaR(kk,ksz,ksw)=((vv-1)*a00+(1-vv)*a10-vv*a01+vv*a11)/Rup_Rlow
 
-      eext_lay(kk,ksz,ksw)=(psca+pabs)*pie*exp(xlog)**2 ! cm^2
+      eext_lay(kk,ksz,ksw)=pext*pie*exp(xlog)**2 ! cm^2
+      eabs_lay(kk,ksz,ksw)=pabs*pie*exp(xlog)**2 ! cm^2
       !!! cwy mosaic ------------------------------------------------------------
 
       pasm=0.5*casm(1)
@@ -704,25 +699,25 @@ dokk: do kk=1, nsig
       end do
       pasm=exp(pasm)
 
-      psca=min(psca,pext)
       weighte(kk,ksz,ksw)=pext*pie*exp(xlog)**2       ! cm^2, pext: extinction coef. weighte: extinction cross-section, L^2 #^-1
       weights(kk,ksz,ksw)=psca*pie*exp(xlog)**2       ! weighte: scattering cross section
 
-      ! swtauaer in L^-1, volume extinction coefficient; num_aer in # L^-3
-      swtauaer(kk,ksw)=swtauaer(kk,ksw)+weighte(kk,ksz,ksw)*num_aer(kk,ksz) ! cm^2 * #/cm^3 ->  cm^-1
-      swssaaer(kk,ksw)=swssaaer(kk,ksw)+weights(kk,ksz,ksw)*num_aer(kk,ksz)
-      swgymaer(kk,ksw)=swgymaer(kk,ksw)+weights(kk,ksz,ksw)*num_aer(kk,ksz)*pasm
+      ! swaodx in L^-1, volume extinction coefficient; num_aer in # L^-3
+      swaodx(kk,ksw)=swaodx(kk,ksw)+weighte(kk,ksz,ksw)*num_aer(kk,ksz) ! cm^2 * #/cm^3 ->  cm^-1
+      swssaz(kk,ksw)=swssaz(kk,ksw)+weights(kk,ksz,ksw)*num_aer(kk,ksz)
+      swgymz(kk,ksw)=swgymz(kk,ksw)+weights(kk,ksz,ksw)*num_aer(kk,ksz)*pasm
     end do doksz
 
-    swgymaer(kk,ksw)=swgymaer(kk,ksw)/swssaaer(kk,ksw)
-    swextaer(kk,ksw)=swtauaer(kk,ksw)*1.e+5           ! km^-1
-    swssaaer(kk,ksw)=swssaaer(kk,ksw)/swtauaer(kk,ksw)
+    swgymz(kk,ksw)=swgymz(kk,ksw)/swssaz(kk,ksw)
+    swextz(kk,ksw)=swaodx(kk,ksw)*1.e+5           ! km^-1
+    swssaz(kk,ksw)=swssaz(kk,ksw)/swaodx(kk,ksw)
   end do doksw
 end do dokk
 
 do ksw=1, nswbands
 do kk=1, nsig
-  swtauaer(kk,ksw)=swtauaer(kk,ksw)*zhgt(kk)*100.     ! zhgt in meter, swtauaer in dimensionless
+  swaodx(kk,ksw)=swaodx(kk,ksw)*zhgt(kk)*100.     ! zhgt in meter, swaodx in dimensionless
+  swaaod(kk,ksw)=swaodx(kk,ksw)*swssaz(kk,ksw)
 end do
 end do
 
@@ -735,14 +730,20 @@ jacobian_aero=zero
 !!! cwy mosaic ------------------------------------------------------------
 dokch: do kch=1, nchanl
   if( data_s(nreal+kch)>zero ) then
-    if( typename=='ce318_aod' ) then
-      if( kch==1 ) then; layer_od(:,kch)=swtauaer(:,1); ksw=1; endif
-      if( kch==2 ) then; layer_od(:,kch)=swtauaer(:,3); ksw=3; endif
-      if( kch==3 ) then; layer_od(:,kch)=swtauaer(:,4); ksw=4; endif
-      if( kch==4 ) then; layer_od(:,kch)=swtauaer(:,5); ksw=5; endif
+    if( typename=='aodx_ce318' ) then
+      if( kch==1 ) then; layer_od(:,kch)=swaodx(:,1); ksw=1; endif
+      if( kch==2 ) then; layer_od(:,kch)=swaodx(:,3); ksw=3; endif
+      if( kch==3 ) then; layer_od(:,kch)=swaodx(:,4); ksw=4; endif
+      if( kch==4 ) then; layer_od(:,kch)=swaodx(:,5); ksw=5; endif
     end if
-    if( typename=='modis_aod' ) then
-      if( kch==4 ) then; layer_od(:,kch)=swtauaer(:,2); ksw=2; endif
+    if( typename=='aodx_modis' ) then
+      if( kch==4 ) then; layer_od(:,kch)=swaodx(:,2); ksw=2; endif
+    end if
+    if( typename=='aaod_ce318' ) then
+      if( kch==1 ) then; layer_od(:,kch)=swaaod(:,1); ksw=1; endif
+      if( kch==2 ) then; layer_od(:,kch)=swaaod(:,3); ksw=3; endif
+      if( kch==3 ) then; layer_od(:,kch)=swaaod(:,4); ksw=4; endif
+      if( kch==4 ) then; layer_od(:,kch)=swaaod(:,5); ksw=5; endif
     end if
 
     totaod_channel=sum(layer_od(:,kch))
@@ -775,37 +776,66 @@ dokch: do kch=1, nchanl
           !ugkg_gcm3(kk)=den_air(kk)*1.e-12                       ! ug/kg -> g/cm^3
           !nmkg_ncm3(kk)=den_air(kk)*1.e-6                        !  #/kg -> #/cm^3
           !
-          ! jac for num_a0x
-          if( n_cvnum/=0 .and. index(aerosol_names_jac(kctr),'num_a')>0 ) then
-            if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
-              jacobian_aero(indx+kk,kch)=eext_lay(kk,ksz,ksw)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*nmkg_ncm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+          if( index(typename,'aodx')/=0 ) then
+            ! jac for num_a0x
+            if( n_cvnum/=0 .and. index(aerosol_names_jac(kctr),'num_a')>0 ) then
+              if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
+                jacobian_aero(indx+kk,kch)=eext_lay(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*nmkg_ncm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+              end if
+            end if
+            ! jac for mas_a0x
+            if( n_cvmas/=0 .and. index(aerosol_names_jac(kctr),'mas_a')>0 ) then
+              if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
+                refr= real(swrefindx_wet(kk,ksz,ksw))
+                refi=-imag(swrefindx_wet(kk,ksz,ksw))
+                rden=rden_mix(kk,ksz)
+                jacobian_aero(indx+kk,kch)=3*eext_lay(kk,ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+ &
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_lay_wetaer(kk,ksz))*betaR(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+ &
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_lay_wetaer(kk,ksz))*betaI(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*ugkg_gcm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+              end if
+            end if
+            ! jac for aer_a0x
+            if( n_cvaer/=0 .and. index(aerosol_names_jac(kctr),'num_a')==0 ) then
+              if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
+                jacobian_aero(indx+kk,kch)=3*eext_lay(kk,ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_lay_wetaer(kk,ksz))*betaR(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_lay_wetaer(kk,ksz))*betaI(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*ugkg_gcm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+              end if
             end if
           end if
-          ! jac for mas_a0x
-          if( n_cvmas/=0 .and. index(aerosol_names_jac(kctr),'mas_a')>0 ) then
-            if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
-              refr= real(swrefindx_wet(kk,ksz,ksw))
-              refi=-imag(swrefindx_wet(kk,ksz,ksw))
-              rden=rden_mix(kk,ksz)
-
-              jacobian_aero(indx+kk,kch)=3*eext_lay(kk,ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+ &
-              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_lay_wetaer(kk,ksz))*betaR(kk,ksz,ksw)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+ &
-              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_lay_wetaer(kk,ksz))*betaI(kk,ksz,ksw)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*ugkg_gcm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+          if( index(typename,'aaod')/=0 ) then
+            ! jac for mas_a0x
+            if( n_cvmas/=0 .and. index(aerosol_names_jac(kctr),'mas_a')>0 ) then
+              if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
+                refr= real(swrefindx_wet(kk,ksz,ksw))
+                refi=-imag(swrefindx_wet(kk,ksz,ksw))
+                rden=rden_mix(kk,ksz)
+                jacobian_aero(indx+kk,kch)=3*eabs_lay(kk,ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_lay_wetaer(kk,ksz))*betaR(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_lay_wetaer(kk,ksz))*betaI(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*ugkg_gcm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+!print *, 'cwy1=', indx, kk, jacobian_aero(indx+kk,kch), trim(aerosol_names_jac(kctr)), betaI(kk,ksz,ksw)
+              end if
             end if
-          end if
-          ! jac for aer_a0x
-          if( n_cvaer/=0 .and. index(aerosol_names_jac(kctr),'num_a')==0 ) then
-            if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
-              jacobian_aero(indx+kk,kch)=3*eext_lay(kk,ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
-              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_lay_wetaer(kk,ksz))*betaR(kk,ksz,ksw)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
-              & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_lay_wetaer(kk,ksz))*betaI(kk,ksz,ksw)
-              jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*ugkg_gcm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+            ! jac for aer_a0x
+            if( n_cvaer/=0 .and. index(aerosol_names_jac(kctr),'num_a')==0 ) then
+              if( totaod_channel>rmin_value .and. vol_lay_wetaer(kk,ksz)>rmin_value ) then
+                jacobian_aero(indx+kk,kch)=3*eabs_lay(kk,ksz,ksw)/(4*pie*rad_dry(kk,ksz)**3*rden)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refr/(rden*vol_lay_wetaer(kk,ksz))*betaR(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)+&
+                & num_aer(kk,ksz)*pie*rad_wet(kk,ksz)**2*refi/(rden*vol_lay_wetaer(kk,ksz))*betaI(kk,ksz,ksw)
+                jacobian_aero(indx+kk,kch)=jacobian_aero(indx+kk,kch)*ugkg_gcm3(kk)*zhgt(kk)/sum(zhgt)*1.e+8
+              end if
             end if
           end if
         end do dolev

@@ -1,4 +1,4 @@
-   subroutine setupaod_srfesca(lunin,mype,nchanl,nreal,nobs,&
+   subroutine setupaod_aodx_ce318(lunin,mype,nchanl,nreal,nobs,&
      obstype,isis,is,aero_diagsave,init_pass)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
@@ -57,21 +57,20 @@
   use gsi_4dvar, only: nobs_bins,hr_obsbin
   use gridmod, only: nsig,get_ij
   use constants, only: tiny_r_kind,zero,one,three,r10
-  use jfunc, only: jiter,miter
+  use jfunc, only: jiter,miter, iter
   use m_dtime, only: dtime_setup, dtime_check, dtime_show
   use chemmod, only: laeroana_gocart, l_aoderr_table                    , &
-  !!! cwy mosaic --------------------------
+  !!! cwy mosaic -------------------------- chem
                      laeroana_mosaic
-  use aod_mosaic_srf, only: call_aod_mosaic_srf
-  use obsmod, only: sf_srf_esca
-  use obsmod, only: i_srfesca_ob_type
-  use m_obsdiags, only: srfescahead
-  use m_srfescaNode, only: srfescaNode, srfescaNode_typecast
-  !!! cwy mosaic --------------------------
-
+  use aod_mosaic, only: call_aod_mosaic
+  use obsmod, only: sf_aodx_ce318
+  use obsmod, only: i_aodx_ob_type
+  use m_obsdiags, only: aodxhead
+  !!! cwy mosaic -------------------------- chem
   use aeroinfo, only: jpch_aero, nusis_aero, nuchan_aero, iuse_aero, &
        error_aero, gross_aero
   use m_obsNode, only: obsNode
+  use m_aodxNode, only: aodxNode, aodxNode_typecast
   use m_obsLList, only: obsLList_appendNode
   use m_obsLlist, only: obsLList_tailNode
   use obsmod, only: rmiss_single
@@ -141,12 +140,15 @@
   integer(i_kind),dimension(nobs_bins) :: n_alloc
   integer(i_kind),dimension(nobs_bins) :: m_alloc
   class(obsNode),pointer:: my_node
-  type(srfescaNode),pointer:: my_head
+  type(aodxNode),pointer:: my_head
   type(obs_diag),pointer:: my_diag
   type(rad_obs_type) :: radmod
-  character(len=*),parameter:: myname="setupaod_srfesca"
+  character(len=*),parameter:: myname="setupaod_aodx_ce318"
 
   real(r_kind), dimension(nchanl) :: total_aod, aod_obs, aod
+  !!! cwy mosaic --------------------
+  real(r_kind), dimension(nsig) :: zhgt
+  !!! cwy mosaic --------------------
 
   integer(i_kind) :: istyp, idbcf, ilone, ilate
   real(r_kind)    :: styp, dbcf
@@ -157,7 +159,6 @@
   real(r_kind),dimension(nsigradjac,nchanl):: jacobian
   real(r_kind),dimension(nsigaerojac,nchanl):: jacobian_aero
   real(r_kind),dimension(nsig,nchanl):: layer_od
-  real(r_kind),dimension(1,nchanl):: srf_od
   real(r_kind) :: clw_guess, tzbgr, sfc_speed
 
 !!! cwy mosaic ------------------------------------------------------------------------ chem
@@ -199,8 +200,8 @@
      if(isis == nusis_aero(j))then 
         jc=jc+1
         if(jc > nchanl)then
-           write(6,*)'setupaod_srf:  ***ERROR*** in channel numbers, jc,nchanl=',jc,nchanl,&
-                '  ***STOP IN setupaod_srf***'
+           write(6,*)'setupaod_aodx_ce318:  ***ERROR*** in channel numbers, jc,nchanl=',jc,nchanl,&
+                '  ***STOP IN setupaod_aodx_ce318***'
            call stop2(71)
         end if
 
@@ -217,17 +218,17 @@
         if (tnoise(jc) < 1.e4_r_kind) toss = .false.
      end if
   end do
-  if ( mype == 0 .and. .not.l_may_be_passive) write(6,*)mype,'setupaod_srf: passive obs',is,isis
-  if(nchanl > jc) write(6,*)'setupaod_srf:  channel number reduced for ', &
+  if ( mype == 0 .and. .not.l_may_be_passive) write(6,*)mype,'setupaod_aodx_ce318: passive obs',is,isis
+  if(nchanl > jc) write(6,*)'setupaod_aodx_ce318:  channel number reduced for ', &
        obstype,nchanl,' --> ',jc
   if(jc == 0) then
-     if(mype == 0) write(6,*)'setupaod_srf: No channels found for ', &
+     if(mype == 0) write(6,*)'setupaod_aodx_ce318: No channels found for ', &
           obstype,isis
      if(nobs > 0)read(lunin)
      return
   end if
   if (toss) then
-     if(mype == 0)write(6,*)'setupaod_srf: all obs var > 1e4.  do not use ',&
+     if(mype == 0)write(6,*)'setupaod_aodx_ce318: all obs var > 1e4.  do not use ',&
           'data from satellite is=',isis
      if(nobs >0)read(lunin)                    
      return
@@ -242,7 +243,7 @@
      endif
   endif
 
-  write(*,*) 'cwy: setupaod_srfesca.F90'
+  write(*,*) 'cwy: setupaod_aodx_ce318.F90'
 ! Initialize radiative transfer
 !  call init_crtm(init_pass,mype_diaghdr(is),mype,nchanl,isis,obstype,radmod)
 
@@ -262,7 +263,7 @@
 !    first outer iteration.
      if (init_pass .and. mype==mype_diaghdr(is)) then
         write(4) isis,dplat(is),obstype,jiter,nchanl,ianldate,ireal,ipchan,nsig,ioff0
-        write(6,*)'setupaod_srfesca:  write header record for ',&
+        write(6,*)'setupaod_aodx_ce318:  write header record for ',&
              isis,ireal,' to file ',trim(diag_aero_file),' ',ianldate
         do i=1,nchanl
            n=ich(i)
@@ -325,14 +326,14 @@
 !!! cwy mosaic ------------------------------------------------------------------------ chem
 !       Interpolate model fields to observation location, call crtm and create jacobians
         if( laeroana_mosaic ) then
-        call call_aod_mosaic_srf(dtime,data_s(:,n),nchanl,nreal,srf_od,jacobian_aero,'srf_esca') ! srf_eabs, srf_esca
+        call call_aod_mosaic(dtime,data_s(:,n),nchanl,nreal,layer_od,zhgt,jacobian_aero,'aodx_ce318')
         else
         call call_crtm(obstype,dtime,data_s(:,n),nchanl,nreal,ich, &
              tvp,qvp,clw_guess,prsltmp,prsitmp, &
              trop5,tzbgr,dtsavg,sfc_speed, &
              tsim,emissivity,ptau5,ts,emissivity_k, &
 !!! ------------------------------------------- crtm_interface.f90
-!!!              temp,wmix,jacobian,error_status,layer_od=layer_od,jacobian_aero=jacobian_aero)
+!!! cwy             temp,wmix,jacobian,error_status,layer_od=layer_od,jacobian_aero=jacobian_aero)
              temp,wmix,jacobian,error_status,layer_od=layer_od,jacobian_aero=jacobian_aero,aod550_obs=aod_obs(4))
 !!! ------------------------------------------- crtm_interface.f90
         end if
@@ -352,15 +353,14 @@
         total_aod = zero
         do i = 1, nchanl
 !!! cwy mosaic ------------------------------------------------------------------------ chem
-           tnoise(i)=10.    ! Mm^-1
+          tnoise(i)=0.01_r_kind
 !!! cwy mosaic ------------------------------------------------------------------------ chem
 
            if( aod_obs(i)/=rmiss_single ) then
              if(aod_obs(i)>zero .and. tnoise(i) < 1.e4_r_kind .or. (iuse_aero(ich(i))==-1  &
                 .and. aero_diagsave))then
 
-                total_aod(i) =srf_od(1,i)
-!!!             write(*,'(a12,4f20.10)') 'lon lat aod:', data_s(ilone,n), data_s(ilate,n), aod_obs(i), total_aod(i)
+                total_aod(i) =sum(layer_od(:,i))          ! dimensionless for mosaic
 
                 if( laeroana_gocart ) then
                   aod(i) = aod_obs(i) - total_aod(i)
@@ -370,16 +370,19 @@
 
 !!! cwy mosaic ------------------------------------------------------------------------ chem
                 if( laeroana_mosaic ) then
-                  aod(i) = aod_obs(i) - total_aod(i)
+                  aod(i) = (aod_obs(i) - total_aod(i))/sum(zhgt(:))*1.e+6    ! average coef. Mm^-1
+                  tnoise(i)=sf_aodx_ce318*tnoise(i)/sum(zhgt(:))*1.e+6
 
-                  !!!tnoise(i)=sf_srf_esca*(10.+0.1*aod_obs(i))
-                  tnoise(i)=sf_srf_esca*tnoise(i)
+                  if ( aod_obs(i) > zero ) then
+                     write(6,'(A,3i6,4f8.3,2f8.2,i)') 'cwy, mype, iobs, ichan, aod_obs, aod_sim, innov, err, lat, lon : ',  &
+                     mype, n, i, aod_obs(i), total_aod(i), aod(i), tnoise(i), cenlat, cenlon, jiter
+                  end if
 
                   error0(i) = tnoise(i)
                   varinv(i) = val_obs/tnoise(i)**2
 
-                  write(*,'(a20,f10.3,a13,f15.3,a11,f10.3,a3,i1)') &
-                  & 'cwy srf esca_obs(i)=',aod_obs(i),' esca_sim(i)=',total_aod(i),' tnoise(i)=',tnoise(i),' i=',i
+!!!                  write(*,'(a15,f6.3,a12,f6.3,a11,f6.3,a3,i1)') &
+!!!                  & 'cwy aod_obs(i)=',aod_obs(i),' aod_sim(i)=',total_aod(i),' tnoise(i)=',tnoise(i),' i=',i
                 end if
 !!! cwy mosaic ------------------------------------------------------------------------ chem
 
@@ -389,13 +392,6 @@
              endif
            end if
         end do
-
-!!!        do i = 1, nchanl
-!!!           if ( aod_obs(i) > zero ) then
-!!!             write(6,'(A,3i6,f15.3,3f10.3,2f10.3)') 'cwy, mype, iobs, ichan, srf_esca_obs, srf_esca_sim, omb, err, lat, lon : ',  &
-!!!                 mype, n, i, aod_obs(i), total_aod(i), aod(i), tnoise(i), cenlat, cenlon
-!!!           end if
-!!!        end do
 
         icc = 0
         do i = 1, nchanl
@@ -435,9 +431,7 @@
               allocate(my_head)
               m_alloc(ibin) = m_alloc(ibin) +1
               my_node => my_head        ! this is a workaround
-              !!! cwy mosaic -------------------------------------------
-              call obsLList_appendNode(srfescahead(ibin),my_node)
-              !!! cwy mosaic -------------------------------------------
+              call obsLList_appendNode(aodxhead(ibin),my_node)
               my_node => null()
 
               my_head%idv = is
@@ -445,7 +439,8 @@
               my_head%elat= data_s(ilate,n)
               my_head%elon= data_s(ilone,n)
  
-              allocate(my_head%res(icc),my_head%err2(icc), &
+              allocate(my_head%res(icc),&
+                       my_head%err2(icc), &
                        my_head%raterr2(icc), &
                        my_head%daod_dvar(nsigaerojac,icc), &
                        my_head%ich(icc),&
@@ -484,80 +479,80 @@
            iii=0
            do ii=1,nchanl
               if (.not.lobsdiag_allocated) then
-                 if (.not.associated(obsdiags(i_srfesca_ob_type,ibin)%head)) then
-                    obsdiags(i_srfesca_ob_type,ibin)%n_alloc = 0
-                    allocate(obsdiags(i_srfesca_ob_type,ibin)%head,stat=istat)
+                 if (.not.associated(obsdiags(i_aodx_ob_type,ibin)%head)) then
+                    obsdiags(i_aodx_ob_type,ibin)%n_alloc = 0
+                    allocate(obsdiags(i_aodx_ob_type,ibin)%head,stat=istat)
                     if (istat/=0) then
-                       write(6,*)'setupaod_srfesca: failure to allocate obsdiags',istat
+                       write(6,*)'setupaod_aodx_ce318: failure to allocate obsdiags',istat
                        call stop2(276)
                     end if
-                    obsdiags(i_srfesca_ob_type,ibin)%tail => obsdiags(i_srfesca_ob_type,ibin)%head
+                    obsdiags(i_aodx_ob_type,ibin)%tail => obsdiags(i_aodx_ob_type,ibin)%head
                  else
-                    allocate(obsdiags(i_srfesca_ob_type,ibin)%tail%next,stat=istat)
+                    allocate(obsdiags(i_aodx_ob_type,ibin)%tail%next,stat=istat)
                     if (istat/=0) then
-                       write(6,*)'setupaod_srfesca: failure to allocate obsdiags',istat
+                       write(6,*)'setupaod_aodx_ce318: failure to allocate obsdiags',istat
                        call stop2(277)
                     end if
-                    obsdiags(i_srfesca_ob_type,ibin)%tail => obsdiags(i_srfesca_ob_type,ibin)%tail%next
+                    obsdiags(i_aodx_ob_type,ibin)%tail => obsdiags(i_aodx_ob_type,ibin)%tail%next
                  end if
-                 obsdiags(i_srfesca_ob_type,ibin)%n_alloc = obsdiags(i_srfesca_ob_type,ibin)%n_alloc +1
+                 obsdiags(i_aodx_ob_type,ibin)%n_alloc = obsdiags(i_aodx_ob_type,ibin)%n_alloc +1
     
-                 allocate(obsdiags(i_srfesca_ob_type,ibin)%tail%muse(miter+1))
-                 allocate(obsdiags(i_srfesca_ob_type,ibin)%tail%nldepart(miter+1))
-                 allocate(obsdiags(i_srfesca_ob_type,ibin)%tail%tldepart(miter))
-                 allocate(obsdiags(i_srfesca_ob_type,ibin)%tail%obssen(miter))
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%indxglb=(ioid(n)-1)*nchanl+ii
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%nchnperobs=-99999
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%luse=luse(n)
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%muse(:)=.false.
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%nldepart(:)=-huge(zero)
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%tldepart(:)=zero
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%wgtjo=-huge(zero)
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%obssen(:)=zero
+                 allocate(obsdiags(i_aodx_ob_type,ibin)%tail%muse(miter+1))
+                 allocate(obsdiags(i_aodx_ob_type,ibin)%tail%nldepart(miter+1))
+                 allocate(obsdiags(i_aodx_ob_type,ibin)%tail%tldepart(miter))
+                 allocate(obsdiags(i_aodx_ob_type,ibin)%tail%obssen(miter))
+                 obsdiags(i_aodx_ob_type,ibin)%tail%indxglb=(ioid(n)-1)*nchanl+ii
+                 obsdiags(i_aodx_ob_type,ibin)%tail%nchnperobs=-99999
+                 obsdiags(i_aodx_ob_type,ibin)%tail%luse=luse(n)
+                 obsdiags(i_aodx_ob_type,ibin)%tail%muse(:)=.false.
+                 obsdiags(i_aodx_ob_type,ibin)%tail%nldepart(:)=-huge(zero)
+                 obsdiags(i_aodx_ob_type,ibin)%tail%tldepart(:)=zero
+                 obsdiags(i_aodx_ob_type,ibin)%tail%wgtjo=-huge(zero)
+                 obsdiags(i_aodx_ob_type,ibin)%tail%obssen(:)=zero
     
                  n_alloc(ibin) = n_alloc(ibin) +1
-                 my_diag => obsdiags(i_srfesca_ob_type,ibin)%tail
+                 my_diag => obsdiags(i_aodx_ob_type,ibin)%tail
                  my_diag%idv = is
                  my_diag%iob = ioid(n)
                  my_diag%ich = ii
                  my_diag%elat= data_s(ilate,n)
                  my_diag%elon= data_s(ilone,n)
               else
-                 if (.not.associated(obsdiags(i_srfesca_ob_type,ibin)%tail)) then
-                    obsdiags(i_srfesca_ob_type,ibin)%tail => obsdiags(i_srfesca_ob_type,ibin)%head
+                 if (.not.associated(obsdiags(i_aodx_ob_type,ibin)%tail)) then
+                    obsdiags(i_aodx_ob_type,ibin)%tail => obsdiags(i_aodx_ob_type,ibin)%head
                  else
-                    obsdiags(i_srfesca_ob_type,ibin)%tail => obsdiags(i_srfesca_ob_type,ibin)%tail%next
+                    obsdiags(i_aodx_ob_type,ibin)%tail => obsdiags(i_aodx_ob_type,ibin)%tail%next
                  end if
-                 if (.not.associated(obsdiags(i_srfesca_ob_type,ibin)%tail)) then
-                    call die(myname,'.not.associated(obsdiags(i_srfesca_ob_type,ibin)%tail)')
+                 if (.not.associated(obsdiags(i_aodx_ob_type,ibin)%tail)) then
+                    call die(myname,'.not.associated(obsdiags(i_aodx_ob_type,ibin)%tail)')
                  end if
-                 if (obsdiags(i_srfesca_ob_type,ibin)%tail%indxglb/=(ioid(n)-1)*nchanl+ii) then
-                    write(6,*)'setupaod_srfesca: index error'
+                 if (obsdiags(i_aodx_ob_type,ibin)%tail%indxglb/=(ioid(n)-1)*nchanl+ii) then
+                    write(6,*)'setupaod_aodx_ce318: index error'
                     call stop2(278)
                  endif
               endif
 
               if (in_curbin.and.icc>0) then
-                 !my_head => aeroNode_typecast(obsLList_tailNode(aerohead(ibin)))
-                 my_node => obsLList_tailNode(srfescahead(ibin))
+                 !my_head => aodxNode_typecast(obsLList_tailNode(aodxhead(ibin)))
+                 my_node => obsLList_tailNode(aodxhead(ibin))
                  if(.not.associated(my_node)) &
                     call die(myname,'unexpected, associated(my_node) =',associated(my_node))
-                 my_head => srfescaNode_typecast(my_node)
+                 my_head => aodxNode_typecast(my_node)
                  if(.not.associated(my_head)) &
                     call die(myname,'unexpected, associated(my_head) =',associated(my_head))
                  my_node => null()
 
-                 if (ii==1) obsptr => obsdiags(i_srfesca_ob_type,ibin)%tail
-                 if (ii==1) obsdiags(i_srfesca_ob_type,ibin)%tail%nchnperobs = nchanl
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%nldepart(jiter) = aod(ii)
-                 obsdiags(i_srfesca_ob_type,ibin)%tail%wgtjo=varinv(ii)
+                 if (ii==1) obsptr => obsdiags(i_aodx_ob_type,ibin)%tail
+                 if (ii==1) obsdiags(i_aodx_ob_type,ibin)%tail%nchnperobs = nchanl
+                 obsdiags(i_aodx_ob_type,ibin)%tail%nldepart(jiter) = aod(ii)
+                 obsdiags(i_aodx_ob_type,ibin)%tail%wgtjo=varinv(ii)
  
 !                Load data into output arrays
                  m=ich(ii)
                  if (varinv(ii)>tiny_r_kind .and. iuse_aero(m)>=1) then
                     iii=iii+1
-                    my_head%diags(iii)%ptr => obsdiags(i_srfesca_ob_type,ibin)%tail
-                    obsdiags(i_srfesca_ob_type,ibin)%tail%muse(jiter) = .true.
+                    my_head%diags(iii)%ptr => obsdiags(i_aodx_ob_type,ibin)%tail
+                    obsdiags(i_aodx_ob_type,ibin)%tail%muse(jiter) = .true.
   
                     ! verify the pointer to obsdiags
  
@@ -579,7 +574,7 @@
            enddo ! do ii=1,nchanl
            if (in_curbin) then
               if( iii/=icc ) then
-                 write(6,*)'setupaod_srfesca: error iii icc',iii,icc
+                 write(6,*)'setupaod_aodx_ce318: error iii icc',iii,icc
                  call stop2(279)
               endif
            endif ! (in_curbin)
@@ -612,11 +607,11 @@
               if (l_may_be_passive) then
                  do ii=1,nchanl
                     if (.not.associated(obsptr)) then
-                       write(6,*)'setupaod_srfesca: error obsptr'
+                       write(6,*)'setupaod_aodx_ce318: error obsptr'
                        call stop2(280)
                     end if
                     if (obsptr%indxglb/=(ioid(n)-1)*nchanl+ii) then
-                       write(6,*)'setupaod_srfesca: error writing diagnostics'
+                       write(6,*)'setupaod_aodx_ce318: error writing diagnostics'
                        call stop2(281)
                     end if
 
@@ -666,7 +661,7 @@
   deallocate(diagbufchan)
 
   if (aero_diagsave) then
-     call dtime_show(myname,'diagsave:aero',i_srfesca_ob_type)
+     call dtime_show(myname,'diagsave:aodx',i_aodx_ob_type)
      close(4)
   endif
 
@@ -685,4 +680,4 @@ contains
 ! Observation class
   character(7),parameter     :: obsclass = '    aod'
   end subroutine contents_netcdf_diag_
-end subroutine setupaod_srfesca
+end subroutine setupaod_aodx_ce318

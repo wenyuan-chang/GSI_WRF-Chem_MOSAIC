@@ -37,7 +37,7 @@ public  stplimnum
 
 contains
 
-! cwy mosaci4 --------------------------------------------------------- chem
+! cwy mosaic --------------------------------------------------------- chem
 !
 ! cbin='num_a01', 'num_a02', 'num_a03', 'num_a04'
 !
@@ -109,7 +109,7 @@ subroutine stplimnum(rval,sval,sges,outmin,outmax,nstep,itbin,cbin)
   
   return
 end subroutine stplimnum
-! cwy mosaci4 --------------------------------------------------------- chem
+! cwy mosaic --------------------------------------------------------- chem
 
 subroutine stplimq(rval,sval,sges,outmin,outmax,nstep,itbin)
 !$$$  subprogram documentation block

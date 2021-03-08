@@ -1,3 +1,4 @@
+!cwy mosiac
 module stpaodmod_srfesca
   
 !$$$ module documentation block

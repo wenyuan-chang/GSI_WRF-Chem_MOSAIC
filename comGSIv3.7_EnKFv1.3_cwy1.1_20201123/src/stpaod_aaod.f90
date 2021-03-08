@@ -1,5 +1,5 @@
-!cwy mosiac
-module stpaodmod_srfeext
+! cwy mosaic
+module stpaodmod_aaod
   
 !$$$ module documentation block
 !           .      .    .                                       .
@@ -22,17 +22,17 @@ module stpaodmod_srfeext
 !$$$ end documentation block
 
   use m_obsNode , only: obsNode
-  use m_srfeextNode, only: srfeextNode
-  use m_srfeextNode, only: srfeextNode_typecast
-  use m_srfeextNode, only: srfeextNode_nextcast
+  use m_aaodNode, only: aaodNode
+  use m_aaodNode, only: aaodNode_typecast
+  use m_aaodNode, only: aaodNode_nextcast
   implicit none
 
   private
-  public stpaod_srfeext
+  public stpaod_aaod
   
 contains
   
-  subroutine stpaod_srfeext(srfeexthead,rval,sval,out,sges,nstep)
+  subroutine stpaod_aaod(aaodhead,rval,sval,out,sges,nstep)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    stpaod        calcuate penalty and stepsize from aod
@@ -70,7 +70,7 @@ contains
     implicit none
     
 ! declare passed variables
-    class(obsNode), pointer             ,intent(in   ) :: srfeexthead
+    class(obsNode), pointer             ,intent(in   ) :: aaodhead
     integer(i_kind)                     ,intent(in   ) :: nstep
     real(r_quad),dimension(max(1,nstep)),intent(inout) :: out
     type(gsi_bundle)                    ,intent(in   ) :: rval,sval
@@ -84,7 +84,7 @@ contains
     real(r_kind),dimension(max(1,nstep)):: term,rad
     real(r_kind) w1,w2,w3,w4
     real(r_kind),pointer,dimension(:):: sv_chem,rv_chem
-    type(srfeextNode), pointer :: aeroptr
+    type(aaodNode), pointer :: aeroptr
     real(r_kind),dimension(nsigaerojac) :: tdir,rdir
 
     out=zero_quad
@@ -94,7 +94,7 @@ contains
 
 
 !   if no aero data return
-    if(.not. associated(srfeexthead))return
+    if(.not. associated(aaodhead))return
 
     if (cmaq_regional) then
 
@@ -109,7 +109,7 @@ contains
        rdir=zero
 
        !aeroptr => aerohead
-       aeroptr => srfeextNode_typecast(srfeexthead)
+       aeroptr => aaodNode_typecast(aaodhead)
 
        do while (associated(aeroptr))
           if(aeroptr%luse)then
@@ -211,7 +211,7 @@ contains
           endif
 
           !aeroptr => aeroptr%llpoint
-          aeroptr => srfeextNode_nextcast(aeroptr)
+          aeroptr => aaodNode_nextcast(aeroptr)
 
        end do
 
@@ -219,6 +219,6 @@ contains
 
     return
 
-  end subroutine stpaod_srfeext
+  end subroutine stpaod_aaod
 
-end module stpaodmod_srfeext
+end module stpaodmod_aaod

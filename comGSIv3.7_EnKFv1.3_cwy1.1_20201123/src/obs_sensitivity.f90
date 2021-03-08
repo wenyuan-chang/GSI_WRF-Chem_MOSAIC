@@ -44,14 +44,21 @@ use obsmod, only: cobstype, nobs_type, obscounts, &
                   i_spd_ob_type, i_rw_ob_type, i_dw_ob_type, &
                   i_sst_ob_type, i_pw_ob_type, i_pcp_ob_type, i_oz_ob_type, &
                   i_o3l_ob_type, i_gps_ob_type, i_rad_ob_type, i_tcp_ob_type, &
-                  i_lag_ob_type, i_colvk_ob_type, i_aero_ob_type, i_aerol_ob_type, &
+                  i_lag_ob_type, i_colvk_ob_type, &
+!!! cwy mosaic -----------------------------------------------
+                  i_aodx_ob_type,    &
+                  i_aaod_ob_type,    &
+!!! cwy mosiac -----------------------------------------------
+                  i_aerol_ob_type,   &
                   i_pm2_5_ob_type, i_gust_ob_type, i_vis_ob_type, i_pblh_ob_type, &
                   i_wspd10m_ob_type, i_td2m_ob_type, i_mxtm_ob_type, i_mitm_ob_type, &
                   i_pmsl_ob_type, i_howv_ob_type, i_tcamt_ob_type, i_lcbas_ob_type, &
                   i_cldch_ob_type, i_uwnd10m_ob_type, i_vwnd10m_ob_type, i_pm10_ob_type, &
                   i_swcp_ob_type, i_lwcp_ob_type, i_light_ob_type, &
 !!! cwy srf_eabs_esca -----------------------------------------------
-                  i_srfeabs_ob_type, i_srfesca_ob_type, i_srfeext_ob_type
+                  i_srfeabs_ob_type, &
+                  i_srfesca_ob_type, &
+                  i_srfeext_ob_type
 !!! cwy srf_eabs_esca -----------------------------------------------
 
 use mpimod, only: mype
@@ -268,7 +275,10 @@ cobtype(i_rad_ob_type)   ="rad  "
 cobtype(i_tcp_ob_type)   ="tcp  "
 cobtype(i_lag_ob_type)   ="lag  "
 cobtype(i_colvk_ob_type) ="colvk"
-cobtype(i_aero_ob_type)  ="aero "
+!!! cwy mosaic --------------------------
+cobtype(i_aodx_ob_type)  ="aodx "
+cobtype(i_aaod_ob_type)  ="aaod "
+!!! cwy mosaic --------------------------
 cobtype(i_aerol_ob_type) ="aerol"
 cobtype(i_pm2_5_ob_type) ="pm2_5"
 cobtype(i_pm10_ob_type)  ="pm10 "
@@ -289,7 +299,6 @@ cobtype(i_vwnd10m_ob_type) ="v10m "
 cobtype(i_swcp_ob_type)  ="swcp "
 cobtype(i_lwcp_ob_type)  ="lwcp "
 cobtype(i_light_ob_type) ="light"
-
 !!! cwy srf_eabs_esca -------------------
 cobtype(i_srfeabs_ob_type)  ="eabs "
 cobtype(i_srfesca_ob_type)  ="esca "

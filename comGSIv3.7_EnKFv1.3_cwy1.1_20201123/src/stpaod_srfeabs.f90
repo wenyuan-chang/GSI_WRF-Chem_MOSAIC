@@ -1,3 +1,4 @@
+!cwy mosaic
 module stpaodmod_srfeabs
   
 !$$$ module documentation block

@@ -11,7 +11,7 @@ cat <<EOF > gsiparm.anl
 ! set factmin_num & factmax_num=0 will also disable scalemin&scalemax
 ! ----------------------------------------------
    factmin_num=0.0, factmax_num=0.0, scalemin=0.0, scalemax=2.0,
-   sf_pm2p5=1., sf_pm10=1., sf_aodce318=1., sf_aodmodis=1.,
+   sf_pm2p5=1., sf_pm10=1., sf_aodx_ce318=1., sf_aodx_modis=1.,
    pm10bufr_only_coarse=1,
    sf_srf_eabs=1, sf_srf_esca=1, sf_srf_eext=1,
    sf_jac=1.,

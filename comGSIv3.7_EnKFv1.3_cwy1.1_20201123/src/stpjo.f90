@@ -33,9 +33,13 @@ module stpjomod
                   & i_pm10_ob_type, &
                   & i_wspd10m_ob_type,i_uwnd10m_ob_type,i_vwnd10m_ob_type,i_td2m_ob_type,i_mxtm_ob_type,i_mitm_ob_type, &
                     i_pmsl_ob_type,i_howv_ob_type,i_tcamt_ob_type,i_lcbas_ob_type,  &
-                    i_aero_ob_type, i_cldch_ob_type, i_swcp_ob_type, i_lwcp_ob_type, i_light_ob_type, &
+                    i_cldch_ob_type, i_swcp_ob_type, i_lwcp_ob_type, i_light_ob_type, &
 !!! cwy srf_eabs_esca ------------------------------------
-                    i_srfeabs_ob_type, i_srfesca_ob_type, i_srfeext_ob_type
+                    i_aodx_ob_type,    &
+                    i_aaod_ob_type,    &
+                    i_srfeabs_ob_type, &
+                    i_srfesca_ob_type, &
+                    i_srfeext_ob_type
 !!! cwy srf_eabs_esca ------------------------------------
 
   implicit none
@@ -284,12 +288,13 @@ subroutine stpjo(yobs,dval,dbias,xval,xbias,sges,pbcjo,nstep,nobs_bins)
   use stpcomod, only: stpco
   use stppm2_5mod, only: stppm2_5
   use stppm10mod, only: stppm10
-  use stpaodmod, only: stpaod
-!!! cwy srf_eabs_esca ----------------------------
+!!! cwy mosaic, srf_eabs_esca ----------------------------
+  use stpaodmod_aodx, only: stpaod_aodx
+  use stpaodmod_aaod, only: stpaod_aaod
   use stpaodmod_srfeabs, only: stpaod_srfeabs
   use stpaodmod_srfesca, only: stpaod_srfesca
   use stpaodmod_srfeext, only: stpaod_srfeext
-!!! cwy srf_eabs_esca ----------------------------
+!!! cwy mosaic, srf_eabs_esca ----------------------------
   use stpgustmod, only: stpgust
   use stpvismod, only: stpvis
   use stppblhmod, only: stppblh
@@ -472,11 +477,13 @@ subroutine stpjo(yobs,dval,dbias,xval,xbias,sges,pbcjo,nstep,nobs_bins)
           if (getindex(cvars2d,'lcbas')>0) &
           call stplcbas(yobs(ib)%lcbas,dval(ib),xval(ib),pbcjo(1,i_lcbas_ob_type,ib),sges,nstep)
 
-!!! cwy --------------------------------------------------------------------------- chem aod
+!!! cwy mosaic --------------------------------------------------------------------------- chem aod
 !   penalty, b, and c for aod
-       case(i_aero_ob_type)
-          call stpaod(yobs(ib)%aero,dval(ib),xval(ib),pbcjo(1,i_aero_ob_type,ib),sges,nstep)
-!!! cwy --------------------------------------------------------------------------- chem aod
+       case(i_aodx_ob_type)
+          call stpaod_aodx(yobs(ib)%aodx,dval(ib),xval(ib),pbcjo(1,i_aodx_ob_type,ib),sges,nstep)
+       case(i_aaod_ob_type)
+          call stpaod_aaod(yobs(ib)%aaod,dval(ib),xval(ib),pbcjo(1,i_aaod_ob_type,ib),sges,nstep)
+!!! cwy mosaic --------------------------------------------------------------------------- chem aod
 
 !!! cwy srf_eabs_esca --------------------------------
        case(i_srfeabs_ob_type)
@@ -785,11 +792,18 @@ subroutine stpjo_setup(yobs)
              ll_jo(stpcnt) = i_lcbas_ob_type
              ib_jo(stpcnt) = ib
           end if
-       case(i_aero_ob_type)
+       case(i_aodx_ob_type)
 !         penalty, b, and c for aod
-          if(associated(yobs(ib)%aero)) then
+          if(associated(yobs(ib)%aodx)) then
              stpcnt = stpcnt +1
-             ll_jo(stpcnt) = i_aero_ob_type
+             ll_jo(stpcnt) = i_aodx_ob_type
+             ib_jo(stpcnt) = ib
+          end if
+       case(i_aaod_ob_type)
+!         penalty, b, and c for aaod
+          if(associated(yobs(ib)%aaod)) then
+             stpcnt = stpcnt +1
+             ll_jo(stpcnt) = i_aaod_ob_type
              ib_jo(stpcnt) = ib
           end if
 !!! cwy srf_eabs_esca ----------------------------------
